@@ -109,7 +109,7 @@ const Home = () => {
                             <TextField
                                 id="outlined-multiline-flexible"
                                 label="Email"
-                                multiline
+                              
                                 fullWidth
                                 maxRows={4}
                                 variant='outlined'
@@ -121,7 +121,7 @@ const Home = () => {
                                 id="outlined-multiline-flexibl1"
                                 label="Senha"
                                 fullWidth
-                                multiline
+                       
                                 maxRows={4}
                                 variant='outlined'
                                 placeholder='Senha'
