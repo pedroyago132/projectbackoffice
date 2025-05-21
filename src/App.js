@@ -16,6 +16,7 @@ import { initMercadoPago } from '@mercadopago/sdk-react';
 import ChangePassword from './pages/ChangePassword';
 import CustomForm from './pages/ClientForm';
 import LoadingScreen from './pages/Loading';
+import GoogleAgenda from './pages/GoogleAgenda';
 
 
 const firebaseConfig = {
@@ -99,6 +100,7 @@ function App() {
           <Route path="/password" element={<ChangePassword />} />
           <Route path="/payment/customForm" element={<CustomForm />} />
           <Route path="/loading" element={<LoadingScreen />} />
+            <Route path="/google" element={<GoogleAgenda />} />
         </Routes>
       </BrowserRouter>
       </ThemeProvider>
