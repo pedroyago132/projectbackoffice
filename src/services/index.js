@@ -182,6 +182,7 @@ export async function dataInstance(idi, tokeni) {
     }
 
     const result = await response.json();
+    console.log(result)
     return result; // Retorna o resultado da chamada para quem chamou a função
   } catch (error) {
     console.error('Erro ao buscar o QR Code:', error);

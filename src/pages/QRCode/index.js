@@ -8,7 +8,7 @@ import { dataInstance, lerQRCode, listingInstances, dataDisconnectedInstance } f
 import Header from '../../components/Header';
 import styled from 'styled-components';
 import base64 from 'base-64';
-import { get, getDatabase, ref } from 'firebase/database';
+import { get, getDatabase, ref, set, update } from 'firebase/database';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 const QRCodePage = () => {
@@ -47,7 +47,11 @@ const QRCodePage = () => {
             instance: "3E1C913EE76B50205B962ED5B439CBB7",
             token: "0F76F73AD4B03EBDBCCDC20F"
         },
-      
+        {
+            instance: "3E1Cjhgjhgfj5B9gdfgfd62ED5B439CBB7",
+            token: "hjfghfghgf3EBDBCgfdCDC20F"
+        },
+
     ];
 
     React.useEffect(() => {
@@ -86,7 +90,7 @@ const QRCodePage = () => {
             // 1. Buscar todos os usuários no banco
             const usersRef = ref(db, '/');
             const snapshot = await get(usersRef);
-            const users = snapshot.val() || {};
+            const users = snapshot.val()
 
             // 2. Verificar correspondências
             const verificationResults = localTokens.map(localToken => {
@@ -147,32 +151,47 @@ const QRCodePage = () => {
     async function GerarQRCode() {
         if (!checkUserToken.token) {
             const checkTokenNotExists = await verifyLocalTokens();
-            const tokenListNotUsed = checkTokenNotExists.find(tokenObject => tokenObject.existsInDB == false)
-            console.log('TOKENLISTNOTUSED:::::', tokenListNotUsed)
-
-            try {
-                set(ref(db, `${base64.encode(user.email)}/tokenZAPI`), {
-                    token: tokenListNotUsed[0].token,
-                    instance: tokenListNotUsed[0].instance,
-                    userEmail:user.email
-                }).then(() => QRcode({ token: tokenListNotUsed[0].token, instance: tokenListNotUsed[0].instance }))
-            } catch (error) {
-                console.error('TRYCAYCHERROR:::::QRCODE:::', error); // Lida com erros
+            if (checkTokenNotExists) {
+                const tokenListNotUsed = checkTokenNotExists.find(tokenObject => tokenObject.existsInDB == false)
+                console.log('TOKENLISTNOTUSED:::::', tokenListNotUsed)
+                try {
+                    await set(ref(db, `${base64.encode(user.email)}/tokenZAPI`), {
+                        token: tokenListNotUsed.token,
+                        instance: tokenListNotUsed.instance,
+                        userEmail: user.email
+                    })
+                    await QRcode({ token: tokenListNotUsed.token, instance: tokenListNotUsed.instance })
+                    console.log('DSHUIDHUISA::::::::', { token: tokenListNotUsed[0].token, instance: tokenListNotUsed[0].instance })
+                } catch (error) {
+                    console.error('TRYCAYCHERROR:::::QRCODE:::', error); // Lida com erros
+                }
             }
+
         }
     }
 
-    async function QRcode(token, instance) {
+    async function QRcode({ token, instance }) {
+        try {
+            if (connected) {
+                window.alert('Celular Conectado')
+            } else {
+                const idi = instance;
+                const tokeni = token;
+                const response = await lerQRCode(idi, tokeni).then(() => {
+                    update(ref(db, `${base64.encode(user.email)}/tokenZAPI`), {
+                        token: tokeni,
+                        instance: idi,
+                        userEmail: user.email
+                    })
+                })
+                setQRCode(response); // Atualiza o estado ou faz o que for necessário com o QR Code
+                console.log('RSPONEVALUE::::::', response); // Imprime o resultado
 
-        if (connected) {
-            window.alert('Celular Conectado')
-        } else {
-            const idi = instance;
-            const tokeni = token;
-            const response = await lerQRCode(idi, tokeni); // Aguarda a função retornar o resultado
-            setQRCode(response); // Atualiza o estado ou faz o que for necessário com o QR Code
-            console.log('RSPONEVALUE::::::', response); // Imprime o resultado
+            }
 
+
+        } catch (erro) {
+            console.log(erro)
         }
 
 
@@ -180,8 +199,8 @@ const QRCodePage = () => {
 
 
     async function dataInstanceValue() {
-        const idi = checkUserToken?.instance;
-        const tokeni = checkUserToken?.token;
+        const idi = checkUserToken.instance;
+        const tokeni = checkUserToken.token;
 
         try {
             const response = await dataInstance(idi, tokeni); // Aguarda a função retornar o resultado
@@ -225,7 +244,7 @@ const QRCodePage = () => {
         dataInstanceValue();
     }, [checkUserToken])
 
-    console.log(checkUserToken)
+    console.log(checkUserToken.token)
 
     return (
         <>
