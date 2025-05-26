@@ -72,3 +72,26 @@ export const StyledButton = styled.button`
     background-color: #45a049;
   }
 `;
+
+const BoxCard = styled.div`
+  width: 180px;
+  height: 25px;
+  padding:10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  border-radius: 8px;
+  margin: 10px;
+`;
+
+
+export const GreenBox = styled(BoxCard)`
+  background-color: green;
+`;
+
+export const RedBox = styled(BoxCard)`
+  background-color: grey;
+`;

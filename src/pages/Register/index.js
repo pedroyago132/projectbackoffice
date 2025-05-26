@@ -43,8 +43,6 @@ const Register = () => {
       // Verifica se os campos estão preenchidos e as senhas coincidem
       if (
         !emailInput ||
-        !razaoSocial ||
-        !cnpjInput ||
         senhaInput !== confirmarSenhaInput
       ) {
         setProgressive(false);

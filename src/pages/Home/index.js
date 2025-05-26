@@ -104,7 +104,7 @@ const Home = () => {
                         <FormControl color='primary'  >
                             <Logo src='/medical.png' alt='id' />
                             <Title>
-                               Sistema Agendei - Geilson
+                               Automação para Agendmentos
                             </Title>
                             <TextField
                                 id="outlined-multiline-flexible"

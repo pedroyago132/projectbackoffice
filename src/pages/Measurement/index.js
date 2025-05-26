@@ -1,12 +1,8 @@
 import * as React from 'react';
 import { Body, ContainerRules, InputText, Container2, ContainerEditAccordion, GreenBox, RedBox } from './styles';
-import { backgroundMenu } from '../../Globals/globals'
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
+
 import Typography from '@mui/material/Typography';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+
 import Header from '../../components/Header';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import axios from 'axios';
@@ -37,6 +33,7 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
+import { setItem } from '../../storage/serviceState';
 
 
 
@@ -51,7 +48,7 @@ const style = {
     left: '50%',
     transform: 'translate(-50%, -50%)',
     minWidth: 500,
-    bgcolor: 'background.paper',
+    bgcolor: 'white',
     border: '2px solid #000',
     boxShadow: 24,
     p: 4,
@@ -187,6 +184,8 @@ const Measurement = () => {
     const [numeroClienteManual, setNumeroClienteManual] = React.useState('');
     const [atendimentoEtapa, setAtendimentoEtapa] = React.useState(false);
     const [attendedAppointments, setAttendedAppointments] = React.useState([]);
+    const [descricaoServico, setDescricaoServico] = React.useState('');
+    const db = getDatabase();
 
 
 
@@ -598,7 +597,7 @@ transition: transform 0.3s;
         const db = getDatabase();
         const post = {
             clientes: relatorio.clientes - 1,
-            valorEmClientes: parseFloat(relatorio?.valorEmClientes) ,
+            valorEmClientes: parseFloat(relatorio?.valorEmClientes),
             valorEmClientesAtendidos: parseFloat(relatorio?.valorEmClientesAtendidos),
             clientesAtendidos: parseFloat(relatorio?.clientesAtendidos)
         };
@@ -624,6 +623,12 @@ transition: transform 0.3s;
             window.alert('Preencha os Campos!')
         } {
             const digit1 = bookedAppointments.length + 1
+
+            const body = {
+                message: `✅ Agendamento Confirmado com ${employeesManual} às ${selectedHorarioManual} para ${servicosManual} no dia ${dateManual}.`,
+                phone: `+${numeroClienteManual}`,
+                delayMessage: 2
+            };
 
             const db = getDatabase();
             set(ref(db, `${base64.encode(user.email)}/agendamentos/${base64.encode(numeroClienteManual + digit1)}`), {
@@ -653,12 +658,6 @@ transition: transform 0.3s;
             const updates = {};
             updates[`${base64.encode(user.email)}/relatorios`] = post;
             update(ref(db), updates).catch(console.error);
-            const body = {
-                message: `✅ Agendamento Confirmado com ${employeesManual} às ${selectedHorarioManual} para ${servicosManual} no dia ${dateManual}.`,
-                phone: `+${numeroClienteManual}`,
-                delayMessage: 2
-            };
-            sendMessageAll(body)
             handleCloseList()
         }
 
@@ -668,13 +667,14 @@ transition: transform 0.3s;
 
 
     React.useEffect(() => {
-        const db = getDatabase()
+
         const auth = getAuth();
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 setUser(user)
-                const db = getDatabase();
+
                 const appointmentsRef = ref(db, `${base64.encode(user.email)}/agendamentos`);
+                setItem('user', user)
 
                 onValue(appointmentsRef, (snapshot) => {
                     const data = snapshot.val();
@@ -720,417 +720,17 @@ transition: transform 0.3s;
 
                 onValue(appointments, (snapshot) => {
                     setUserData(snapshot.val())
-                    setLink(userData?.nameBase64 ? `https://wa.me/5561990008359?text=${snapshot.val().nameBase64}` : null)
+                  //  setLink(snapshot.val()?.nameBase64 ? `https://wa.me/5561990008359?text=${snapshot.val().nameBase64}` : null)
                 });
 
                 dataInstanceValue()
-              
+
             }
         }
         )
 
-    }, [user,userData])
+    }, [user])
 
-    React.useEffect(() => {
-        const instancia = "3E019F6A2AD3400FBE778E66062CE0C1"; // Substitua pelo ID da instância
-        const token = "0F4CC44688C0009373197BB4"; // Substitua pelo token
-        const novaUrlWebhook = "https://backendpedro.vercel.app/webhook";
-
-        const atualizarWebhook = async () => {
-            try {
-                const resposta = await fetch(
-                    `https://api.z-api.io/instances/${instancia}/token/${token}/update-webhook-received`,
-                    {
-                        method: "PUT",
-                        headers: {
-                            "Client-Token": "F47c6b24b03ef4ecb84a2a76b0fc8617eS",
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ value: novaUrlWebhook }),
-                    }
-                );
-
-                const dados = await resposta.json();
-                console.log("✅ Webhook atualizado com sucesso:", dados);
-            } catch (erro) {
-                console.error("❌ Erro ao atualizar o webhook:", erro);
-            }
-        };
-
-        const interval = setInterval(atualizarWebhook, 5000);
-
-        return () => clearInterval(interval);
-    }, []);
-
-    console.log('USERDATA::::::::', userData)
-
-
-    React.useEffect(() => {
-        const atualizar = async () => {
-            try {
-                const response = await fetch('https://backendpedro.vercel.app/dadosChat', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                })
-                if (!response.ok) {
-                    throw new Error(`Erro: ${response.status} - ${response.statusText}`);
-                }
-
-                const result = await response.json();
-
-                setMessageDataUser(result)
-                setUserMessage(result.text.message)
-            } catch (error) {
-                console.error('Erro ao buscar dados:', error);
-            }
-        };
-
-
-
-        const interval = setInterval(() => {
-            atualizar();
-        }, 5000);
-
-        return () => clearInterval(interval);
-    }, []);
-
-
-    const formatDate = (isoDate) => {
-        if (!isoDate) return '';
-        const [year, month, day] = isoDate.split("-");
-        return `${day}/${month}`;
-    };
-
-
-    React.useEffect(() => {
-        if (
-            bookedAppointments &&
-            Object.keys(userData.funcionarios || {}).length > 0
-        ) {
-            const appointmentsForDate = bookedAppointments.filter(
-                (appt) => appt.date === selectedDate
-            );
-            const updatedAvailableTimes = workHours.filter((time) => {
-                const hasFreeEmployee = Object.entries(userData.funcionarios).some(
-                    ([empKey]) => {
-                        return !appointmentsForDate.some(
-                            (appt) => appt.time === time && appt.employee === empKey
-                        );
-                    }
-                );
-                return hasFreeEmployee;
-            });
-
-            setAvailableTimes(updatedAvailableTimes);
-
-            const filteredEmployees = Object.entries(userData.funcionarios)
-                .filter(([empKey]) =>
-                    updatedAvailableTimes.some(
-                        (time) =>
-                            !appointmentsForDate.some(
-                                (appt) =>
-                                    appt.time === time && appt.employee === empKey
-                            )
-                    )
-                )
-                .map(([empKey, empData]) => ({
-                    key: empKey,
-                    nome: empData.nome,
-                    cargo: empData.cargo
-                }));
-
-            setAvailableEmployees(filteredEmployees);
-
-            // Logs de debug
-            console.log("📋 Selecteddate", selectedDate);
-            console.log("🕒 Horários disponíveis:", updatedAvailableTimes);
-            console.log("👥 Funcionários disponíveis:", filteredEmployees);
-        }
-    }, [bookedAppointments, userData, workHours, userMessage]);
-
-
-    React.useEffect(() => {
-
-        // Filtra os agendamentos
-        const appointmentsForDate = bookedAppointments.filter(
-            appt => appt.date === dateManual
-        );
-
-        const availableTimes = workHours.filter(time =>
-            !appointmentsForDate.some(appt => appt.time === time)
-        );
-
-        setManualHorarios(availableTimes)
-
-        const servicesArray = userData?.servicos
-            ? Object.entries(userData.servicos).map(([_, servico], index) => ({
-                tempId: index, // Criamos um ID temporário
-                nome: servico?.nome || 'Nome não definido',
-                valor: servico?.valor || 0
-            }))
-            : [];
-
-        setSelectedServicoManual(servicesArray);
-
-
-    }, [dateManual, userData]);
-
-    React.useEffect(() => {
-        if (!dateManual || !horarioManual || !userData.funcionarios || !bookedAppointments) {
-            setEmployeesManual([]); // Limpa se faltar algum dado
-            return;
-        }
-
-        // 1. Converte bookedAppointments para array (se necessário)
-        const appointmentsArray = Array.isArray(bookedAppointments)
-            ? bookedAppointments
-            : Object.values(bookedAppointments || {});
-
-        // 2. Filtra e mapeia apenas os NOMES dos funcionários disponíveis
-        const availableEmployeeNames = Object.entries(userData.funcionarios)
-            .filter(([empKey]) => { // Usamos apenas a chave (empKey)
-                return !appointmentsArray.some(appt =>
-                    appt.time === horarioManual &&
-                    appt.date === dateManual &&
-                    appt.employee === empKey
-                );
-            })
-            .map(([, empData]) => empData.nome); // Extrai apenas o nome
-
-        // 3. Atualiza o estado com a lista de nomes
-        setSelectedEmployeeManual(availableEmployeeNames);
-
-    }, [dateManual, horarioManual, userData.funcionarios, bookedAppointments]);
-
-
-    React.useEffect(() => {
-
-        if (userMessage.toLowerCase() === "agendar") {
-            const bodyT = {
-                phone: `+${messageDataUser.phone}`,
-                message: `${userData.mensagens.msgCadastro}`,
-                delayMessage: 2
-            };
-
-            sendMessageAll(bodyT);
-            setProxAgendar(true)
-
-        }
-
-        else if (userMessage.toLowerCase() === "1" && !selectedDate && proxAgendar) {
-            const body = {
-                message: `Qual a data desejada? (Digite no formato dia/mês: *Ex: 22/04*)`,
-                phone: `+${messageDataUser.phone}`,
-                delayMessage: 2
-            };
-            sendMessageAll(body);
-            setProxAgendar(false)
-
-        }
-
-        else if (!selectedDate && /^\d{2}\/\d{2}$/.test(userMessage)) {
-            // Validação melhorada da data (corrigida)
-            const [day, month] = userMessage.split('/').map(Number);
-            const currentYear = new Date().getFullYear();
-
-            // Cria a data corretamente (mês -1 porque JavaScript usa 0-11)
-            const dateObj = new Date(currentYear, month - 1, day);
-
-            // Verifica se a data é válida (agora comparando com os valores originais)
-            if (dateObj.getDate() !== day ||
-                dateObj.getMonth() + 1 !== month ||
-                dateObj.getFullYear() !== currentYear) {
-                const body = {
-                    message: `Data inválida. Por favor, digite no formato dia/mês válido: *Ex: 22/04*`,
-                    phone: `+${messageDataUser.phone}`,
-                    delayMessage: 2
-                };
-                sendMessageAll(body);
-                return;
-            }
-
-            setSelectedDate(userMessage);
-            setEtapaDate(true);
-
-            // Formata a data para o padrão do seu sistema (se necessário)
-            const formattedDate = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}`;
-
-            // Filtra os agendamentos
-            const appointmentsForDate = bookedAppointments.filter(
-                appt => appt.date === formattedDate
-            );
-
-            const availableTimes = workHours.filter(time =>
-                !appointmentsForDate.some(appt => appt.time === time)
-            );
-
-            // Envia a resposta
-            if (availableTimes.length > 0) {
-                const body = {
-                    message: `Horários disponíveis para ${formattedDate}:\n\n${availableTimes.join('\n')}\n\n*Digite o horário desejado (ex: 14:00)*`,
-                    phone: `+${messageDataUser.phone}`,
-                    delayMessage: 2
-                };
-                sendMessageAll(body);
-            } else {
-                const body = {
-                    message: `Não há horários disponíveis para ${formattedDate}. Por favor, escolha outra data.`,
-                    phone: `+${messageDataUser.phone}`,
-                    delayMessage: 2
-                };
-                sendMessageAll(body);
-                setSelectedDate(userMessage);
-                setEtapaDate(false);
-            }
-        }
-
-        else if (selectedDate && !selectedTime && /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(userMessage)) {
-            setSelectedTime(userMessage);
-
-            // Verifica se userData e userData.servicos existem
-            if (userData && userData.servicos) {
-                // Converte o objeto de serviços em array
-                const servicesArray = Object.entries(userData.servicos).map(([key, servico]) => ({
-                    id: key,
-                    ...servico
-                }));
-
-                // Cria a lista de serviços para a mensagem
-                const serviceList = servicesArray
-                    .map((servico, index) => `${index + 1}. ${servico.nome} - ${servico.valor}`)
-                    .join("\n");
-
-                const serviceBody = {
-                    phone: `+${messageDataUser.phone}`,
-                    message: `Escolha um dos serviços disponíveis abaixo:\n\n${serviceList}\n\n*Digite o número do serviço desejado.*`,
-                    delayMessage: 2
-                };
-
-                sendMessageAll(serviceBody);
-            } else {
-                console.error("Serviços não disponíveis no userData");
-                // Você pode adicionar um tratamento de erro aqui, como enviar uma mensagem ao usuário
-            }
-        }
-        // Usuário escolheu um serviço pelo índice
-        else if (selectedTime && selectedDate && !servicoSelecionado && /^\d+$/.test(userMessage)) {
-            const services = Object.entries(userData.servicos).map(([key, servico]) => ({
-                id: key,
-                nome: servico.nome,
-                valor: servico.valor  // Note que mudei de "valor" para "preco" para manter compatibilidade
-            }));
-
-            const serviceIndex = parseInt(userMessage) - 1;
-            const selectedService = services[serviceIndex];
-            setServicoSelecionado(selectedService);
-            if (selectedService) {
-                const availableEmployees = Object.keys(userData.funcionarios).filter(
-                    (emp) =>
-                        Array.isArray(bookedAppointments) &&
-                        !bookedAppointments.some(
-                            (appt) =>
-                                appt.time === selectedTime &&
-                                appt.date === selectedDate &&
-                                appt.employee === emp
-                        )
-                );
-
-                if (availableEmployees.length > 0) {
-                    const employeesList = availableEmployeesa
-                        .map((emp, index) => `${index + 1}. ${emp.nome}`)
-                        .join("\n");
-
-                    const employeeBody = {
-                        phone: `+${messageDataUser.phone}`,
-                        message: `Funcionários disponíveis para ${selectedTime} no dia ${selectedDate}:\n\n${employeesList}\n\n*Digite o número correspondente ao funcionário desejado.*`,
-                        delayMessage: 2
-                    };
-
-
-
-                    sendMessageAll(employeeBody)
-
-
-
-                    setTimeout(() => {
-                        setEtapaConfirm(true)
-                    }, 8000);
-
-
-
-                }
-
-            }
-        } else if (selectedEmployee) {
-            console.log('EMPLYEEESELEICOADOOO')
-        }
-
-
-
-    }, [userMessage, selectedDate, servicoSelecionado]);
-
-
-    React.useEffect(() => {
-        const podeAgendar = etapaConfirm && servicoSelecionado && /^\d+$/.test(userMessage);
-
-        if (podeAgendar) {
-            const index = parseInt(userMessage) - 1;
-            const selectedFunc = availableEmployeesa[index];
-
-            if (!selectedFunc) return;
-
-            setSelectedEmployee(selectedFunc.nome);
-
-            const body = {
-                message: `✅ Agendamento Confirmado com ${selectedFunc.nome} às ${selectedTime} no dia ${selectedDate}.`,
-                phone: `+${messageDataUser.phone}`,
-                delayMessage: 2
-            };
-
-            const bodyError = {
-                message: `❌ Instabilidade para agendamentos com ${selectedFunc.nome} às ${selectedTime} no dia ${selectedDate}.`,
-                phone: `+${messageDataUser.phone}`,
-                delayMessage: 2
-            };
-
-            const digit1 = bookedAppointments.length + 1
-
-            const db = getDatabase();
-            set(ref(db, `${base64.encode(user.email)}/agendamentos/${base64.encode(messageDataUser.phone + digit1)}`), {
-                time: selectedTime,
-                date: selectedDate,
-                employee: selectedFunc.nome,
-                id: messageDataUser.phone,
-                phone: messageDataUser.phone,
-                nome: messageDataUser.senderName,
-                servico: servicoSelecionado?.nome ?? "",
-                digit: digit1,
-                atendido: false,
-                valorServico: servicoSelecionado.valor
-            })
-                .then(() => sendMessageAll(body))
-                .catch(() => sendMessageAll(bodyError));
-
-            const post = {
-                clientes: relatorio.clientes + 1,
-                valorEmClientes: parseFloat(relatorio?.valorEmClientes) + parseFloat(servicoSelecionado.valor),
-                valorEmClientesAtendidos: parseFloat(relatorio?.valorEmClientesAtendidos),
-                clientesAtendidos: parseFloat(relatorio?.clientesAtendidos)
-            };
-
-            const updates = {};
-            updates[`${base64.encode(user.email)}/relatorios`] = post;
-            update(ref(db), updates).catch(console.error);
-
-            setEtapaConfirm(false);
-            setProxAgendar(false);
-            setSelectedDate(false);
-            setSelectedTime(false)
-            setServicoSelecionado(false)
-        }
-    }, [userMessage, etapaConfirm]);
 
 
 
@@ -1207,14 +807,14 @@ transition: transform 0.3s;
         if (!isLink) return;
 
         navigator.clipboard.writeText(isLink)
-        .then(() => {
-            setIsCopied(true);
-            setTimeout(() => setIsCopied(false), 2000);
-        })
-        .catch(err => {
-            console.error('Falha ao copiar texto: ', err);
-        });
-      
+            .then(() => {
+                setIsCopied(true);
+                setTimeout(() => setIsCopied(false), 2000);
+            })
+            .catch(err => {
+                console.error('Falha ao copiar texto: ', err);
+            });
+
     };
 
     const onDeleteService = (service) => {
@@ -1249,7 +849,8 @@ transition: transform 0.3s;
         const db = getDatabase();
         set(ref(db, `${base64.encode(user.email)}/servicos/${base64.encode(valorServico + nomeServico)}`), {
             nome: nomeServico,
-            valor: valorServico
+            valor: valorServico,
+            descricao:descricaoServico
         }).then(() => handleCloseRegister()).catch(error => console.log('ERRO AO CADASTRAR SERVIÇO:::::::', error));
 
 
@@ -1574,6 +1175,12 @@ transition: transform 0.3s;
                     </Typography>
                     <TextField id="outlined-basic-cpf" style={{ marginTop: 15 }} value={valorServico} label="Ex: 15.50..." onChange={text => setValorServico(text.target.value)} placeholder='Mensagem' fullWidth variant="outlined" />
 
+                    <Typography id="modal-modal-title" variant="h5" style={{ fontWeight: '500', marginTop: 10, fontSize: 16 }} >
+                        Descrição do Serviço ( Opcional ):
+                    </Typography>
+                    <TextField id="outlined-basic-cpf" style={{ marginTop: 15 }} value={descricaoServico} label="Degradê alto e limpo ✨ + topo médio com textura (produto: pomada ou wax) 💈🔥" onChange={text => setDescricaoServico(text.target.value)} placeholder='Descrição' fullWidth variant="outlined" />
+
+
                     <Button style={{ marginTop: 10, backgroundColor: '#0073b1' }} variant='contained' fullWidth onClick={() => registerServico()}>Cadastrar</Button>
 
 
@@ -1691,457 +1298,3 @@ transition: transform 0.3s;
 }
 
 export default Measurement
-
-
-/* 
-
-
-
-   {
-                            dataClientes.length > 0 ? (dataClientes.map((item) => {
-                                if (item.nome) {
-                                    return 
-                                } else {
-                                    return null
-                                }
-                            })) : (
-                                <Typography style={{ fontWeight: '600', color: '#999592', fontSize: '14px', alignSelf: 'flex-start' }} > Nenhum usuário cadastrado </Typography>
-
-                            )
-                        }
-
-
-
-
-
-                            <Container1>
-                        <ContainerRules1>   <Typography style={{ alignSelf: 'flex-start', fontWeight: 'bold', color: '#da4103', fontSize: '22px' }} >Estabelecimento: Drogasil</Typography>
-
-                        </ContainerRules1>
-
-
-
-                        <div style={{ flexDirection: 'row', display: 'flex', width: '100%', gap: '40%' }} >
-                            <Typography style={{ alignSelf: 'flex-start', fontWeight: 'bold', color: 'white', fontSize: '22px' }} >Cadastros:</Typography>
-                            <Button style={{ alignSelf: 'flex-end' }} onClick={handleOpenRegister} variant="outlined">Cadastrar</Button>
-                        </div>
-
-
-
-
-
-                     
-
-                    </Container1>
-
-
-
-
-
-
-
-                    Automação horário remedeio
-
-
-                    React.useEffect(() => {
-        if (user) {
-            const dbRef = ref(database, `${base64.encode(user.email)}/clientes`); // Referência para a coleção 'clientes'
-
-            // Escuta mudanças em tempo real
-            onValue(dbRef, (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    const dataList = Object.keys(data).map((key) => ({
-                        id: key,
-                        nome: data[key].nome,
-                        acabaEm: data[key].acabaEm,
-                        cpf: data[key].cpf,
-                        contato: data[key].contato,
-                        doses: data[key].doses,
-                        remedio: data[key].remedio,
-                        receita: data[key].receita,
-                        usoContinuo: data[key].usoContinuo,
-                        mensagens: data[key].mensagens,
-                        horario: data[key].horario,
-                        dataCadastro: data[key].dataCadastro,
-                        emailDono: user.email,
-                        valorMedicamento: data[key].valorMedicamento,
-                        msgUsoContinuo: data[key].msgUsoContinuo,
-                        msgReceita: data[key].msgReceita,
-                        digit: data[key].digit,
-                        fotoUrl: data[key].fotoUrl
-                    }));
-
-                    setDataClientes(dataList);
-
-
-
-
-                    // Carregar mensagens
-                    const dbRefMensagens = ref(getDatabase());
-                    get(child(dbRefMensagens, `${base64.encode(user.email)}/mensagens`))
-                        .then((snapshot) => {
-                            if (snapshot.exists()) {
-                                setUserData(snapshot.val());
-                            } else {
-                                console.log("No data available");
-                            }
-                        })
-                        .catch((error) => {
-                            console.error(error);
-                        });
-                } else {
-                    setFilteredData([]);
-                    setDataClientes([]);
-                    setClientesRecompra([]); // Define lista vazia se não houver dados
-                }
-            });
-        } else {
-            setFilteredData([]);
-            setDataClientes([]);
-            setClientesRecompra([]); // Define lista vazia se o usuário não estiver logado
-        }
-    }, [user]);
-
-
-
-    React.useEffect(() => {
-        if (dataClientes) {
-            const hoje = new Date(); // Data atual
-
-            const clientesRecompra = dataClientes.filter((item) => {
-                // Divide o formato "DD/MM/YYYY" em partes
-                const [dia, mes, ano] = item.acabaEm.split("/").map(Number);
-
-                // Cria um objeto Date no formato correto (mês é 0-indexado)
-                const dataAcabaEm = new Date(ano, mes - 1, dia);
-
-                // Calcula três dias antes de dataAcabaEm
-                const tresDiasAntes = new Date(dataAcabaEm);
-                tresDiasAntes.setDate(tresDiasAntes.getDate() - 3);
-
-                // Verifica se hoje está dentro do intervalo de 3 dias ou menos
-                return hoje >= tresDiasAntes && hoje <= dataAcabaEm;
-            });
-
-            setClientesRecompra(clientesRecompra); // Atualiza o array com os clientes filtrados
-
-            const soma = clientesRecompra.reduce(
-                (acumulador, objeto) => Number(acumulador) + Number(objeto.valorMedicamento),
-                0
-            );
-
-            // Chama o método setValorNegativoRecompra com o valor negativo
-            setValorNegativoRecompra(soma);
-        }
-    }, [dataClientes]); // Inclua dataClientes
-
-
-    React.useEffect(() => {
-        if (dataClientes) {
-            const hoje = new Date(); // Data atual
-
-            const clientesRecompra = dataClientes.filter((item) => {
-                // Divide o formato "DD/MM/YYYY" em partes
-                const [dia, mes, ano] = item.acabaEm.split("/").map(Number);
-
-                // Cria um objeto Date no formato correto (mês é 0-indexado)
-                const dataAcabaEm = new Date(ano, mes - 1, dia);
-
-                // Calcula três dias antes de dataAcabaEm
-                const tresDiasAntes = new Date(dataAcabaEm);
-                tresDiasAntes.setDate(tresDiasAntes.getDate() - 3);
-
-                // Retorna os itens que NÃO têm diferença de 3 dias
-                return hoje.toDateString() !== tresDiasAntes.toDateString();
-            });
-
-            setFilteredData(clientesRecompra); // Atualiza o array com os clientes filtrados
-        }
-    }, [dataClientes]); // Inclua dataClientes na lista de dependências
-
-
-    React.useEffect(() => {
-        const dbRef = ref(database, `/`); // Referência para a coleção 'clientes'
-
-
-
-        const intervalo = setInterval(() => {
-            const unsubscribe = onValue(dbRef, (snapshot) => {
-                const data = snapshot.val();
-                console.log('ITEM1::::::::', data)
-                if (data) {
-                    const dataList = Object.keys(data).map((key) => ({
-                        id: key,
-                        clientes: data[key].clientes,
-                        mensagens: data[key].mensagens,
-                        assinar: data[key].assinar,
-                        isconnected: data[key].isconnected,
-                        relatorios: data[key].relatorios
-                    }));
-                    setClientforTime(dataList);
-
-
-
-
-                } else {
-                    return null // Define uma lista vazia caso não haja dados
-                }
-                console.log(clientForTime)
-
-            });
-            return unsubscribe;
-        }, 60000);
-        return () => clearInterval(intervalo);
-
-
-
-
-    }, [])
-
-    React.useEffect(() => {
-        const agora = new Date();
-        if (clientForTime) {
-            clientForTime.forEach((client) => {
-                if (client.clientes) {
-                    Object.values(client.clientes).forEach((cliente) => {
-                        const acabaEmStr = cliente.acabaEm; // Ex: "16/10/2024"
-                        const [dia, mes, ano] = acabaEmStr.split("/").map(Number); // Quebra o formato DD/MM/YYYY
-                        const dataAcabaEm = new Date(ano, mes - 1, dia); // Cria objeto Date para `acabaEm`
-
-                        // Calcula o momento exato para envio (36 horas antes)
-                        const momentoEnvio = new Date(dataAcabaEm);
-                        momentoEnvio.setHours(momentoEnvio.getHours() - 58);
-
-                        // Verifica se o horário atual corresponde ao momento de envio
-                        const horas = String(agora.getHours()).padStart(2, "0");
-                        const minutos = String(agora.getMinutes()).padStart(2, "0");
-                        const dataAtualStr = `${agora.getFullYear()}-${String(
-                            agora.getMonth() + 1
-                        ).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")} ${horas}:${minutos}`;
-
-                        const momentoEnvioStr = `${momentoEnvio.getFullYear()}-${String(
-                            momentoEnvio.getMonth() + 1
-                        ).padStart(2, "0")}-${String(momentoEnvio.getDate()).padStart(2, "0")} ${String(
-                            momentoEnvio.getHours()
-                        ).padStart(2, "0")}:${String(momentoEnvio.getMinutes()).padStart(2, "0")}`;
-
-                        console.log('momentoenvio::::', momentoEnvioStr, 'dataatualizar:::', dataAtualStr)
-
-                        if (dataAtualStr === momentoEnvioStr) {
-                            const body = {
-                                message: `,${cliente.msgUsoContinuo} - Medicação: ${cliente.remedio}`,
-                                phone: `55${cliente.contato}`,
-                                delayMessage: 10,
-                            };
-
-                            console.log("Enviando mensagem para:", cliente.contato);
-                            sendMessageAll(body); // Função já implementada para envio de mensagem
-                        }
-                    });
-                }
-            });
-        }
-    }, [clientForTime])
-
-
-
-
-    React.useEffect(() => {
-        const processClients = async () => {
-            if (clientForTime) {
-                for (const client of clientForTime) {
-                    if (client.clientes) {
-                        for (const cliente of Object.values(client.clientes)) {
-                            for (const clienteT of Object.values(cliente.horario)) {
-                                const agora = new Date();
-                                const horas = String(agora.getHours()).padStart(2, "0");
-                                const minutos = String(agora.getMinutes()).padStart(2, "0");
-
-                                // Converter cliente.acabaEm para objeto Date
-                                const [dia, mes, ano] = cliente.acabaEm.split('/');
-                                const dataFinal = new Date(`${ano}-${mes}-${dia}`);
-
-                                if (clienteT.hora === `${horas}:${minutos}` && agora <= dataFinal) {
-                                    if (user.email === 'pedroyago132@gmail.com') {
-
-                                        if (client.mensagens.msgHorario != 'undefined' && client.mensagens.msgHorario) {
-                                            const body = {
-                                                message: `${client.mensagens.msgHorario} - ${cliente.remedio}, agora às ${horas}:${minutos}`,
-                                                phone: `55${cliente.contato}`,
-                                                delayMessage: 10,
-
-                                            }
-                                            await sendMessageAll(body);
-                                        }
-
-
-
-
-                                        if (cliente.fotoUrl) {
-                                            const bodyImage = {
-                                                phone: `55${cliente.contato}`,
-                                                image: `${cliente.fotoUrl}`,
-                                                caption: "Remédio",
-                                            };
-                                            await sendImage(bodyImage);
-                                        }
-
-                                        if (cliente) {
-                                            az(cliente);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-
-        };
-
-        // Executa a função a cada 60 segundos
-        const interval = setInterval(() => {
-            processClients();
-        }, 40000);
-
-        // Limpa o intervalo quando o componente é desmontado
-        return () => clearInterval(interval);
-    }, [clientForTime]);
-
-
-    async function az(cliente) {
-        const db = getDatabase();
-        const postNome = {
-            nome: cliente.nome,
-            cpf: cliente.cpf,
-            contato: cliente.contato,
-            acabaEm: cliente.acabaEm,
-            doses: cliente.doses - 1,
-            remedio: cliente.remedio,
-            horario: cliente.horario,
-            dataCadastro: cliente.dataCadastro,
-            receita: true,
-            usoContinuo: cliente.usoContinuo,
-            msgUsoContinuo: cliente.msgUsoContinuo,
-            msgReceita: cliente.msgReceita,
-            digit: cliente.digit,
-            fotoUrl: cliente.fotoUrl,
-            emailDono: cliente.emailDono,
-            valorMedicamento: cliente.valorMedicamento
-        };
-
-        const updates = {};
-        updates[`${base64.encode(cliente.emailDono)}/clientes/${base64.encode(cliente.cpf + cliente.digit + cliente.remedio)}`] = postNome;
-
-        try {
-            await update(ref(db), updates);
-            console.log('Dose alterada');
-        } catch (log) {
-            console.log('ERROREDITUSER:::::', log);
-        }
-    }
-
-    async function dataInstanceValue() {
-        const idi = '3D826867ABEC00CA23EBB2D4EBC7E202';
-        const tokeni = '9A63F56F86E49E2446ED34DD';
-
-        try {
-            const response = await dataInstance(idi, tokeni); // Aguarda a função retornar o resultado
-            console.log('DATAAQUI:::::::', response)
-            if (response.connected) {
-                setConnectedNumber(true)
-            } else {
-                setConnectedNumber(false)
-            }
-        } catch (error) {
-            console.error('TRYCAYCHERROR:::::QRCODE:::', error); // Lida com erros
-        }
-    }
-
-    React.useEffect(() => {
-        dataInstanceValue();
-
-    }, [])
-
-
-
-
-
-
-   
-    
-*/
-
-
-
-
-/*
-
- React.useEffect(() => {
-const today = new Date();
-const month = today.getMonth() + 1;
-const year = today.getFullYear();
-const date = today.getDate();
-const hours = today.getHours();
-const minutes = today.getMinutes().toString().padStart(2, '0'); // Pads single digit minutes with a zero
-setDate(`${date}/${month}/${year} ${hours}:${minutes}`);
-}, []);
-
-
-React.useEffect(() => {
-const db = getDatabase()
-const auth = getAuth();
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        // User is signed in, see docs for a list of available properties
-        // https://firebase.google.com/docs/reference/js/auth.user
-        setUser(user)
-
-
-        const dbRef = ref(db, `${base64.encode(user.email)}/assinar`);
-        onValue(dbRef, (snapshot) => {
-            const data = snapshot.val();
-
-            if (data) {
-                setPaymentState(data)
-                if (data.id) {
-                    const fetchPaymentLinks = async () => {
-                        try {
-                            const response = await fetch(`https://backend-nine-gamma-70.vercel.app/payment-link-status/${data.id}`); // URL do backend
-
-                            if (!response.ok) {
-                                throw new Error('Erro ao buscar os links de pagamento');
-                            }
-
-                            const dataT = await response.json();
-                            console.log(dataT)
-                            setPaymentLinks(dataT)
-                            if (dataT.orders_paid > 0) {
-                                const databasePath = `${base64.encode(user.email)}/assinar`;
-                                await set(ref(db, databasePath), {
-                                    id: dataT.id,
-                                    assinatura: true
-                                }).then(log => {
-                                    console.log('Assinatura paga')
-                                }).catch(error => console.log(error))
-                            }
-
-                        } catch (err) {
-                            console.log(err)
-                            setPaymentLinks([]); // Limpa os dados anteriores em caso de erro
-                        }
-                    };
-                    fetchPaymentLinks()
-                }
-            }
-
-        })
-        // ...
-    } else {
-        // User is signed out
-        // ...
-    }
-});
-}, []) */

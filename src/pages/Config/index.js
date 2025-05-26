@@ -1,147 +1,248 @@
-import * as React from 'react';
-import { PageContainer, SubTitle, FormContainer, Title, TitleForm } from './styles';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import QRCode from "react-qr-code";
-import { getDatabase, ref, child, push, update, get } from "firebase/database";
-import Button from '@mui/material/Button';
-import "firebase/database";
-import TextField from '@mui/material/TextField';
-import Header from '../../components/Header';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getDatabase, ref, child, get, update, set } from 'firebase/database';
 import base64 from 'base-64';
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import styled from "styled-components";
+import { colorButton, backgroundColor, backgroundMenu } from '../../Globals/globals';
+import Header from '../../components/Header';
+import { Typography } from '@mui/material';
 
+// Componentes estilizados
+const PageContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: ${backgroundColor};
+`;
+
+const FormContainer = styled.div`
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 55%;
+  display: flex;
+  flex-direction: column;
+  height: 65%;
+  gap: 15px;
+  align-items: center;
+  justify-content: center;
+  
+  @media (max-width: 768px) { 
+    width: 95%;
+    height: 90%;
+  }
+`;
+
+const Title = styled.a`
+  color: black;
+  font-size: 24px;
+  font-weight: bold;
+`;
+
+const TitleForm = styled.a`
+  color: black;
+  font-size: 16px;
+  font-weight: 600;
+`;
+
+const SubTitle = styled.a`
+  color: grey;
+  font-size: 18px;
+  font-weight: 500;
+`;
+
+const TextField = styled.input`
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+`;
+
+const Button = styled.button`
+  width: 100%;
+  padding: 12px;
+  background-color: ${colorButton};
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+const RemoveButton = styled(Button)`
+  background-color: #f44336;
+  width: auto;
+  padding: 0 15px;
+  height: 48px;
+  margin-left: 8px;
+
+  &:hover {
+    background-color: #d32f2f;
+  }
+`;
+
+const AddButton = styled(Button)`
+  background-color: #4CAF50;
+  width: auto;
+  padding: 0 15px;
+  height: 48px;
+  margin-left: 8px;
+
+  &:hover {
+    background-color: #388E3C;
+  }
+`;
+
+const PerguntaContainer = styled.div`
+  display: flex;
+  width: 100%;
+  align-items: center;
+  margin-bottom: 16px;
+`;
 
 const Configuracao = () => {
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const [user, setUser] = React.useState({ email: 'alo' });
-    const [msgHorario, setMsgHorario] = React.useState('');
-    const [msgCadastro, setMsgCadastro] = React.useState('');
     const [qrCode, setQRCode] = React.useState(false);
+    const [perguntas, setPerguntas] = React.useState([]);
+    const [novaPergunta, setNovaPergunta] = React.useState('');
+    const [sobre, setSobre] = React.useState('');
+    const db = getDatabase();
 
-    const [userData, setUserData] = React.useState({ msgCadastro: '', msgHorario: '' });
 
     React.useEffect(() => {
         const auth = getAuth();
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // User is signed in, see docs for a list of available properties
-                // https://firebase.google.com/docs/reference/js/auth.user
-                setUser(user)
-                // ...
-            } else {
-                // User is signed out
-                // ...
-            }
-        });
-    }, [])
+                setUser(user);
+                if (user?.email) {
+                    const dbRef = ref(getDatabase());
+                    get(child(dbRef, `${base64.encode(user.email)}/perguntas`)).then((snapshot) => {
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
+                            setPerguntas(data);
 
-
-
-
-    React.useEffect(() => {
-        if (user) {
-            const dbRef = ref(getDatabase());
-            get(child(dbRef, `${base64.encode(user.email)}/mensagens`)).then((snapshot) => {
-                if (snapshot.exists()) {
-                    setUserData(snapshot.val())
-                    console.log(userData)
-                } else {
-                    console.log("No data available");
+                        }
+                    }).catch(console.error);
                 }
-            }).catch((error) => {
-                console.error(error);
-            });
-        }
+            }
+        })
+    }, []);
 
-    }, [user]); // Atualiza sempre que 'items' mudar
 
     function writeNewPost() {
-        const email64 = base64.encode(user.email)
-        const db = getDatabase();
+        const email64 = base64.encode(user.email);
+        const updates = {};
+  
 
-        if (userData.msgCadastro != msgCadastro && msgCadastro != '') {
-            const postData = {
-                msgCadastro: msgCadastro,
-                msgHorario: userData.msgHorario,
-            };
-
-            const updates = {};
-            updates[email64 + '/mensagens'] = postData;
-
-            return update(ref(db), updates).then(log => {
-                window.alert('Alterado com sucesso!!')
-                navigate('/measure')
-
-            }).catch(log => console.log('ERROREDITUSER:::::', log))
-
+        updates[email64 + '/perguntas'] = perguntas;
+        if (perguntas) {
+            console.log('PASOUUUUUUUUUUUUUU')
+            return set(ref(db, `${email64}/perguntas`), perguntas)
+                .then(() => {
+                    window.alert('Configurações salvas com sucesso!');
+                    navigate('/measure');
+                })
+                .catch(error => console.log('Erro ao salvar:', error));
         }
-       
-        if (userData.msgHorario != msgHorario && msgHorario != '') {
-            const postData = {
-                msgCadastro: userData.msgCadastro,
-                msgHorario: msgHorario,
-            };
 
-            const updates = {};
-            updates[email64 + '/mensagens'] = postData;
 
-            return update(ref(db), updates).then(log => window.alert('Alterado com sucesso!!')).catch(log => console.log('ERROREDITUSER:::::', log))
-
-        }
     }
 
+    const handlePerguntaChange = (id, texto) => {
+        setPerguntas(prev =>
+            prev.map(pergunta =>
+                pergunta.id === id ? { ...pergunta, texto } : pergunta
+            )
+        );
+    };
 
+    const adicionarPergunta = () => {
+        if (novaPergunta.trim() !== '') {
+            const novoId = perguntas.length > 0 ? Math.max(...perguntas.map(p => p.id)) + 1 : 1;
+            setPerguntas(prev => [...Object.entries(prev), { id: novoId, texto: novaPergunta }]);
+            setNovaPergunta('');
+        }
+    };
+
+    const removerPergunta = (id) => {
+        if (perguntas.length >= 0) {
+            const updates = {}
+            setPerguntas(prev => prev.filter(pergunta => pergunta.id !== id));
+        }
+
+    };
+
+    console.log('PERGUNTASSS::::', perguntas)
     return (
         <>
             <Header />
             <PageContainer>
                 <FormContainer>
+                    <Title>Configuração de Mensagens e Perguntas</Title>
+                    <SubTitle>Personalize as mensagens enviadas aos seus clientes</SubTitle>
 
-                    <Title>Aqui você pode alterar dados do seu sistema</Title>
-                    <SubTitle>Edite suas mensagens que serão enviadas aos clientes</SubTitle>
-                    <TitleForm>Enviado para cadastro de clientes:</TitleForm>
-                    <TextField
-                        id={`outlined-basic`}
-                        label={`Mensagem de cadastro`}
-                        fullWidth
-                        variant="outlined"
-                        onChange={(text) =>
-                            setMsgCadastro(
-                                text.target.value
-                            )
-                        }
-                        value={msgCadastro}
-                    />
+                    <TitleForm>Perguntas Personalizadas:</TitleForm>
+                    {perguntas.map((pergunta, index) => (
+                        <PerguntaContainer key={index}>
+                            <TextField
+                                disabled
+                                type="text"
+                                placeholder={`${pergunta.texto}`}
+                                value={pergunta.texto}
+                                onChange={(e) => handlePerguntaChange(pergunta.id, e.target.value)}
+                            />
+                            <RemoveButton onClick={() => removerPergunta(pergunta.id)}>
+                                Remover
+                            </RemoveButton>
+                        </PerguntaContainer>
+                    ))}
 
-                    <SubTitle>Mensagem Escolhida: {userData.msgCadastro}</SubTitle>
+                    <PerguntaContainer>
+                        <Typography style={{ color: "black", fontWeight: 'bold' }} >Pergunta ao usuário:</Typography>
+                        <TextField
+                            type="text"
+                            placeholder="Digite uma nova pergunta"
+                            value={novaPergunta}
+                            onChange={(e) => setNovaPergunta(e.target.value)}
+                        />
+                        <AddButton onClick={adicionarPergunta}>
+                            Adicionar
+                        </AddButton>
+                    </PerguntaContainer>
 
+                    <Button style={{ backgroundColor: '#0073b1' }} onClick={writeNewPost}>
+                        Salvar Todas as perguntas
+                    </Button>
 
-                    <TitleForm>Enviado ,:</TitleForm>
-                    <TextField
-                        id={`outlined-basic`}
-                        label={`Mensagem de lembrete - Horários`}
-                        fullWidth
-                        variant="outlined"
-                        onChange={(text) =>
-                            setMsgHorario(
-                                text.target.value
-                            )
-                        }
-                        value={msgHorario}
-                    />
+                    <PerguntaContainer>
+                        <Typography style={{ color: "black", fontWeight: 'bold' }} >Descrição da empresa:</Typography>
+                        <TextField
+                            type="text"
+                            placeholder="Sobre a empresa"
+                            value={sobre}
+                            onChange={(e) => setSobre(e.target.value)}
+                        />
+                    </PerguntaContainer>
 
-                    <SubTitle>Mensagem Escolhida: {userData.msgHorario}</SubTitle>
-
-
-                    <Button id='Button-id' fullWidth variant='outlined' onClick={() => writeNewPost()} >Salvar</Button>
-
-
-
+                    <Button style={{ backgroundColor: '#0073b1' }} onClick={writeNewPost}>
+                        Salvar Descrição "Sobre a empresa"
+                    </Button>
                 </FormContainer>
             </PageContainer>
         </>
     );
-}
+};
 
 export default Configuracao;
-

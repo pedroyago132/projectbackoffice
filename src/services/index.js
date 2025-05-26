@@ -2,6 +2,7 @@ import firebase from "firebase/compat/app";
 import { getDatabase, ref, set, get,child } from "firebase/database";
 import { Globalurl } from "../Globals/globals";
 import axios from "axios";
+import { secretToken } from "../Globals/globals";
 
 export function getClients() {
     const arrayClientes = []
@@ -21,7 +22,7 @@ export async function sendMessageAll(body) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json', // Define que o conteúdo do corpo é JSON
-        'Client-Token': 'F47c6b24b03ef4ecb84a2a76b0fc8617eS',
+        'Client-Token': `${secretToken}`,
       },
       body: JSON.stringify(body),
     });
@@ -48,7 +49,7 @@ export async function sendMessageWitchButton(bodyT) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json', // Define que o conteúdo do corpo é JSON
-        'Client-Token': 'F47c6b24b03ef4ecb84a2a76b0fc8617eS',
+        'Client-Token': `${secretToken}`,
       },
       body: JSON.stringify(bodyT),
     });
@@ -67,14 +68,54 @@ export async function sendMessageWitchButton(bodyT) {
     throw error; // Relança o erro, se você quiser tratá-lo fora dessa função
   }
 }
+export async function refreshToken(body) {
+  try {
+    const response = await fetch(`http://localhost:3030/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
 
+       const data = await response.json(); // Chamando a função json()
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
 
+    console.log('DATAREFRESH:::::',data)
+
+    return await data
+  } catch (error) {
+    console.error('API Error:', error);
+    throw error;
+  }
+}
+
+export async function callBackOAuth(body) {
+  try {
+    const response = await fetch(`http://localhost:3030/auth/callback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('API Error:', error);
+    throw error;
+  }
+}
 export function createInstance(body) {
   fetch(`https://api.z-api.io/instances/integrator/on-demand`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json', // Define que o conteúdo do corpo é JSON
-       'client-Token': 'F47c6b24b03ef4ecb84a2a76b0fc8617eS'
+       'client-Token': `${secretToken}`
     },
     body: JSON.stringify(body)
   })
@@ -89,7 +130,7 @@ export async function lerQRCode(idi, tokeni) {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'client-Token': 'F47c6b24b03ef4ecb84a2a76b0fc8617eS',
+        'client-Token': `${secretToken}`,
       },
     });
 
@@ -109,7 +150,7 @@ export async function listingInstances(idi, tokeni) {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'client-Token': 'F47c6b24b03ef4ecb84a2a76b0fc8617eS',
+        'client-Token': `${secretToken}`,
       },
     });
 
@@ -132,7 +173,7 @@ export async function dataInstance(idi, tokeni) {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'client-Token': 'F47c6b24b03ef4ecb84a2a76b0fc8617eS',
+        'client-Token': `${secretToken}`,
       },
     });
 
@@ -155,7 +196,7 @@ export async function dataDisconnectedInstance(idi, tokeni) {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'client-Token': 'F47c6b24b03ef4ecb84a2a76b0fc8617eS',
+        'client-Token': `${secretToken}`,
       },
     });
 
@@ -177,7 +218,7 @@ export async function sendImage(bodyImage) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json', // Define que o conteúdo do corpo é JSON
-        'Client-Token': 'F47c6b24b03ef4ecb84a2a76b0fc8617eS',
+        'Client-Token': `${secretToken}`,
       },
       body: JSON.stringify(bodyImage),
     });
@@ -232,7 +273,7 @@ export async function readMessage(idi,tokeni) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json', // Define que o conteúdo do corpo é JSON
-        'Client-Token': 'F47c6b24b03ef4ecb84a2a76b0fc8617eS',
+        'Client-Token': `${secretToken}`,
       },
       body: JSON.stringify(),
     });
@@ -263,7 +304,7 @@ export const atualizarWebhook = async () => {
       { value: novaUrlWebhook }, // Corpo da requisição
       {
         headers: {
-          'Client-Token': 'F47c6b24b03ef4ecb84a2a76b0fc8617eS', // Se necessário
+          'Client-Token': `${secretToken}`, // Se necessário
           'Content-Type': 'application/json'
         }
       }
