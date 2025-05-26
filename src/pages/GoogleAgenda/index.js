@@ -131,7 +131,7 @@ const GoogleAgenda = () => {
     const oauthSignIn = async () => {
         const params = {
             client_id: '450312285360-7ph6jle92fp2kv1dsuo1h2pde6ld7sdt.apps.googleusercontent.com',
-            redirect_uri: 'http://localhost:3000/google', // Deve ser registrado no Google Cloud Console
+            redirect_uri: 'https://projectbackoffice.vercel.app/google', // Deve ser registrado no Google Cloud Console
             response_type: 'code',
             scope: 'https://www.googleapis.com/auth/calendar.events.owned',
             include_granted_scopes: 'true',
