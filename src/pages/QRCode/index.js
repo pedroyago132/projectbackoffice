@@ -177,13 +177,7 @@ const QRCodePage = () => {
             } else {
                 const idi = instance;
                 const tokeni = token;
-                const response = await lerQRCode(idi, tokeni).then(() => {
-                    update(ref(db, `${base64.encode(user.email)}/tokenZAPI`), {
-                        token: tokeni,
-                        instance: idi,
-                        userEmail: user.email
-                    })
-                })
+                const response = await lerQRCode(idi, tokeni)
                 setQRCode(response); // Atualiza o estado ou faz o que for necessário com o QR Code
                 console.log('RSPONEVALUE::::::', response); // Imprime o resultado
 
