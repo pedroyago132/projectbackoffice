@@ -466,13 +466,14 @@ transition: transform 0.3s;
     const handleOpenList = () => setOpenList(true);
     const handleCloseList = () => setOpenList(false);
     const columns = [
-        { field: 'servico', headerName: 'Serviço:', width: 150 },
-        { field: 'nome', headerName: 'Nome', width: 130 },
-        { field: 'employee', headerName: 'Quem Atende', width: 150 },
+        { field: 'service', headerName: 'Serviço:', width: 150 },
+        { field: 'clientName', headerName: 'Nome', width: 130 },
+        { field: 'employeeName', headerName: 'Quem Atende', width: 150 },
         { field: 'time', headerName: 'Horário', width: 130 },
         { field: 'date', headerName: 'Data ( para ):', width: 150 },
-        { field: 'phone', headerName: 'Contato', width: 150 },
-        { field: 'valorServico', headerName: 'Valor do Serviço', width: 150 }
+        { field: 'clientPhone', headerName: 'Contato', width: 150 },
+        { field: 'serviceValue', headerName: 'Valor do Serviço', width: 150 },
+        { field: 'id', headerName: 'ID', width: 150 }
 
     ];
 
@@ -677,7 +678,7 @@ transition: transform 0.3s;
                 setItem('user', user)
 
                 onValue(appointmentsRef, (snapshot) => {
-                    const data = snapshot.val();
+                    const data = snapshot.val()
 
                     if (data) {
                         // Obtém a data atual no formato dd/mm
@@ -686,27 +687,23 @@ transition: transform 0.3s;
                         const month = String(today.getMonth() + 1).padStart(2, '0');
                         const todayFormatted = `${day}/${month}`;
 
-                        const allAppointments = Object.values(data).map((appt) => ({
-                            time: appt.time,
-                            employee: appt.employee,
-                            id: appt.id,
-                            phone: appt.phone,
-                            nome: appt.nome,
-                            servico: appt.servico,
-                            date: appt.date,
+                        const allAppointments = Object.entries(data).map(([key, appt]) => ({
+                            id: key,
+                            service: appt.service,          // Removido appt.servico||
+                            clientName: appt.clientName,    // Removido appt.nome||
+                            employeeName: appt.employeeName,// Removido appt.funcionario||appt.employee||
+                            time: appt.time,                // Removido appt.hora||
+                            date: appt.date,                // Removido appt.data||
+                            clientPhone: appt.clientPhone,  // Removido appt.telefone||appt.phone||
+                            serviceValue: appt.serviceValue,// Removido appt.valor||appt.valorServico||
                             digit: appt.digit,
-                            atendido: appt.atendido,
-                            valorServico: appt.valorServico
+                            atendido: appt.atendido
                         }));
 
-                        // Filtra agendamentos NÃO atendidos E de hoje
-                        const notAttendedToday = allAppointments.filter((appt) =>
-                            appt.atendido === false && appt.date === todayFormatted
-                        );
-                        setBookedAppointments(notAttendedToday);
+                        setBookedAppointments(allAppointments);
+                        console.log('ALL APPOINTMENTS:', allAppointments);
 
-                        // Filtra agendamentos ATENDIDOS E de hoje (opcional)
-                        const attendedToday = allAppointments.filter((appt) =>
+                        const attendedToday = allAppointments.filter(appt =>
                             appt.atendido === true && appt.date === todayFormatted
                         );
                         setAttendedAppointments(attendedToday);
@@ -720,7 +717,7 @@ transition: transform 0.3s;
 
                 onValue(appointments, (snapshot) => {
                     setUserData(snapshot.val())
-                  //  setLink(snapshot.val()?.nameBase64 ? `https://wa.me/5561990008359?text=${snapshot.val().nameBase64}` : null)
+                    //  setLink(snapshot.val()?.nameBase64 ? `https://wa.me/5561990008359?text=${snapshot.val().nameBase64}` : null)
                 });
 
                 dataInstanceValue()
@@ -850,7 +847,7 @@ transition: transform 0.3s;
         set(ref(db, `${base64.encode(user.email)}/servicos/${base64.encode(valorServico + nomeServico)}`), {
             nome: nomeServico,
             valor: valorServico,
-            descricao:descricaoServico
+            descricao: descricaoServico
         }).then(() => handleCloseRegister()).catch(error => console.log('ERRO AO CADASTRAR SERVIÇO:::::::', error));
 
 
@@ -1040,7 +1037,6 @@ transition: transform 0.3s;
                         <InputText placeholder='Pesquisar...' value={filterValue} onChange={e => handleFilterChange(e)} />
                         <Paper sx={{ height: 400, width: '100%', alignSelf: 'flex-start' }}>
                             <DataGrid
-
                                 rows={bookedAppointments}
                                 columns={columns}
                                 initialState={{ pagination: { paginationModel } }}
@@ -1049,7 +1045,7 @@ transition: transform 0.3s;
                                 sx={{ border: 0 }}
                                 onRowSelectionModelChange={handleRowSelection}
                                 disableRowSelectionOnClick={false}
-                                getRowId={bookedAppointments.id}
+                                getRowId={(row) => row.id}  // Fixed getRowId prop
                                 {...bookedAppointments}
                             />
                         </Paper>
@@ -1082,6 +1078,7 @@ transition: transform 0.3s;
                                 checkboxSelection
                                 sx={{ border: '6px dotted #0073b1' }}
                                 onRowSelectionModelChange={handleRowRecompra}
+                                getRowId={attendedAppointments.id}
                                 {...attendedAppointments}
                             />
                         </Paper>
