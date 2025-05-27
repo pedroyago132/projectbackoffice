@@ -1,5 +1,5 @@
-import  React from 'react';
-import { Container, Input, Title, FormControl, Logo, SubTitle, Body, Container1, ImageBackground } from './styles';
+import React from 'react';
+import { Container, Input, Title, FormControl, Logo, SubTitle, Body, Container1, ImageBackground, CleanTextField } from './styles';
 import { useNavigate } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
@@ -11,160 +11,156 @@ import { database } from '../../App';
 
 
 const Home = () => {
-    const [connected, setConnected] = React.useState(false);
-    const [emailInput, setEmailInput] = React.useState(false);
-    const [user, setUser] = React.useState(false);
-    const [senhaInput, setSenha] = React.useState(false);
-    const [state, setState] = React.useState({
-        open: false,
-        vertical: 'right',
-        horizontal: 'center',
-    });
+  const [connected, setConnected] = React.useState(false);
+  const [emailInput, setEmailInput] = React.useState(false);
+  const [user, setUser] = React.useState(false);
+  const [senhaInput, setSenha] = React.useState(false);
+  const [state, setState] = React.useState({
+    open: false,
+    vertical: 'right',
+    horizontal: 'center',
+  });
 
-    const { vertical, horizontal, open } = state;
+  const { vertical, horizontal, open } = state;
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const handleClick = (newState) => () => {
-        setState({ ...newState, open: true });
-    };
+  const handleClick = (newState) => () => {
+    setState({ ...newState, open: true });
+  };
 
-    const handleClose = () => {
-        setState({ ...state, open: false });
-    };
+  const handleClose = () => {
+    setState({ ...state, open: false });
+  };
 
-    React.useEffect(() => {
-        const db = getDatabase()
+  React.useEffect(() => {
+    const db = getDatabase()
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user)
+        const dbRef = ref(db, `${base64.encode(user.email)}/isconnected`);
+        onValue(dbRef, (snapshot) => {
+          const data = snapshot.val();
+          setConnected(data)
+        })
+      }
+    }
+    )
+
+  }, [])
+
+  const loginfake = () => {
+    if (emailInput == 'anderson@gmail.com' && senhaInput == 'senha1234') {
+      navigate('/measure')
+    }
+  }
+
+
+  const goMeansure = () => {
+    const db = getDatabase();
+    if (!emailInput || !senhaInput) {
+      window.alert('Insira os campos de usuário e senha')
+    } else {
+      const dbRef = ref(database, `${base64.encode(emailInput)}/isconnected`);
+
+      onValue(dbRef, (snapshot) => {
+        const data = snapshot.val();
+        console.log('ITEM1::::::::', data)
+
+
+
         const auth = getAuth();
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                setUser(user)
-                const dbRef = ref(db, `${base64.encode(user.email)}/isconnected`);
-                onValue(dbRef, (snapshot) => {
-                    const data = snapshot.val();
-                    setConnected(data)
-                })
-            }
-        }
-        )
+        signInWithEmailAndPassword(auth, emailInput, senhaInput)
+          .then((userCredential) => {
 
-    }, [])
 
-    const loginfake = () => {
-        if(emailInput =='anderson@gmail.com' && senhaInput == 'senha1234'){
-            navigate('/measure')
-        }
+
+
+          })
+          .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            window.alert('Verifique Usuário e senha')
+          });
+
+
+
+
+      })
+
     }
+  };
+
+  if (user) {
+    navigate('/loading')
+  }
+
+  return (
+    <>
+      <Body>
+        <Container>
+
+          <FormControl color='primary'  >
+            <Logo src='/medical.png' alt='id' />
+            <Title>
+              Automação para Agendmentos
+            </Title>
+            <CleanTextField
+              fullWidth
+              label="Email"
+              variant="outlined"
+              margin="normal"
+              placeholder="seu@email.com"
+              onChange={(e) => setEmailInput(e.target.value)}
+            />
+
+            <CleanTextField
+              fullWidth
+              label="Senha"
+              type="password"
+              variant="outlined"
+              margin="normal"
+              placeholder="••••••••"
+              onChange={(e) => setSenha(e.target.value)}
+            />
+            <Button fullWidth style={{ alignSelf: 'center' }} onClick={() => goMeansure()} variant="contained">Entrar</Button>
+
+            <div style={{ display: 'flex', gap: 7 }} >
+              <SubTitle   >
+                Ainda não tem uma conta?
+              </SubTitle>
+              <a style={{ fontWeight: 'bold', fontSize: 16, cursor: 'pointer' }} onClick={() => navigate('/registro')} >
+                Clique Aqui
+              </a>
+            </div>
+
+            <div style={{ display: 'flex', gap: 7 }} >
+              <SubTitle   >
+                Esqueceu sua senha?
+              </SubTitle>
+              <a style={{ fontWeight: 'bold', fontSize: 16, cursor: 'pointer' }} onClick={() => navigate('/password')} >
+                Clique Aqui
+              </a>
+            </div>
+          </FormControl>
 
 
-    const goMeansure = () => {
-        const db = getDatabase();
-        if (!emailInput || !senhaInput) {
-            window.alert('Insira os campos de usuário e senha')
-        } else {
-            const dbRef = ref(database, `${base64.encode(emailInput)}/isconnected`);
+        </Container>
+        <Container1>
+          <ImageBackground id='logoa' src='/medical.png' />
+        </Container1>
+        <Snackbar
+          anchorOrigin={{ vertical, horizontal }}
+          open={open}
+          onClose={handleClose}
+          message="Erro ao efetuar Login"
+          key={vertical + horizontal}
+        />
+      </Body>
+    </>
+  );
 
-            onValue(dbRef, (snapshot) => {
-                const data = snapshot.val();
-                console.log('ITEM1::::::::', data)
-      
-
-
-                    const auth = getAuth();
-                    signInWithEmailAndPassword(auth, emailInput, senhaInput)
-                        .then((userCredential) => {
-            
-                             
-                                           
-            
-                        })
-                        .catch((error) => {
-                            const errorCode = error.code;
-                            const errorMessage = error.message;
-                            window.alert('Verifique Usuário e senha')
-                        });
-
-
-             
-
-            })
-
-        }
-    };
-
-    if(user){
-        navigate('/loading')
-    }
-
-        return (
-            <>
-                <Body>
-                    <Container>
-
-                        <FormControl color='primary'  >
-                            <Logo src='/medical.png' alt='id' />
-                            <Title>
-                               Automação para Agendmentos
-                            </Title>
-                            <TextField
-                                id="outlined-multiline-flexible"
-                                label="Email"
-                              
-                                fullWidth
-                                maxRows={4}
-                                variant='outlined'
-                                placeholder='Insira seu Email'
-                                onChange={text => setEmailInput(text.target.value)}
-                            />
-
-                            <TextField
-                                id="outlined-multiline-flexibl1"
-                                label="Senha"
-                                fullWidth
-                       
-                                maxRows={4}
-                                variant='outlined'
-                                placeholder='Senha'
-                                onChange={text => setSenha(text.target.value)}
-
-                            />
-                            <Button style={{ alignSelf: 'center' }} onClick={() => goMeansure()} variant="contained">Entrar</Button>
-
-                            <div style={{ display: 'flex', gap: 7 }} >
-                                <SubTitle   >
-                                    Ainda não tem uma conta?
-                                </SubTitle>
-                                <a style={{ fontWeight: 'bold', fontSize: 16, cursor: 'pointer' }} onClick={() => navigate('/registro')} >
-                                    Clique Aqui
-                                </a>
-                            </div>
-
-                            <div style={{ display: 'flex', gap: 7 }} >
-                                <SubTitle   >
-                                    Esqueceu sua senha?
-                                </SubTitle>
-                                <a style={{ fontWeight: 'bold', fontSize: 16, cursor: 'pointer' }} onClick={() => navigate('/password')} >
-                                    Clique Aqui
-                                </a>
-                            </div>
-                        </FormControl>
-
-
-                    </Container>
-                    <Container1>
-                        <ImageBackground id='logoa' src='/medical.png' />
-                    </Container1>
-                    <Snackbar
-                        anchorOrigin={{ vertical, horizontal }}
-                        open={open}
-                        onClose={handleClose}
-                        message="Erro ao efetuar Login"
-                        key={vertical + horizontal}
-                    />
-                </Body>
-            </>
-        );
-    
 
 }
 

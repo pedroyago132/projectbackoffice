@@ -2,6 +2,7 @@ import React from 'react';
 
 import styled from 'styled-components';
 import { colorButton, colorTitleButton, backgroundColor } from '../../Globals/globals';
+import TextField from '@mui/material/TextField';
 
 export const Body = styled.div`
   width: 100%;
@@ -135,3 +136,24 @@ padding:7px;
 border: 2px solid #d9ded8;
 `
 
+export const CleanTextField = styled(TextField)({
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': {
+      borderColor: '#6c757d', // Cinza escuro
+      borderWidth: '1.5px'
+    },
+    '&:hover fieldset': {
+      borderColor: '#6c757d' // Mantém cinza escuro no hover
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#0d6efd', // Azul quando em foco
+      borderWidth: '2px'
+    }
+  },
+  '& .MuiInputLabel-root': {
+    color: '#212529' // Preto
+  },
+  '& .MuiInputBase-input': {
+    color: '#212529' // Preto
+  }
+});
