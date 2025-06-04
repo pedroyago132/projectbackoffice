@@ -1110,7 +1110,7 @@ transition: transform 0.3s;
                     </ContainerRules>
                     <div style={{ display: 'flex', flexDirection: 'column', width: '95%' }} >
 
-                        <Typography style={{ fontWeight: 'bold', color: 'black', fontSize: '22px', alignSelf: 'flex-start' }} >Agendamentos para hoje:</Typography>
+                        <Typography style={{ fontWeight: 'bold', color: 'black', fontSize: '22px', alignSelf: 'flex-start' }} >Agendamentos de serviços:</Typography>
                         <InputText placeholder='Pesquisar...' value={filterValue} onChange={e => handleFilterChange(e)} />
                         <Paper sx={{ height: 400, width: '100%', alignSelf: 'flex-start' }}>
                             <DataGrid
@@ -1142,7 +1142,7 @@ transition: transform 0.3s;
 
                         </div>
 
-                        <Typography style={{ fontWeight: 'bold', color: 'white', fontSize: '22px' }} >Atendidos: </Typography>
+                        <Typography style={{ fontWeight: 'bold', color: 'white', fontSize: '22px' }} >Produtos Comprados: </Typography>
 
                         <Paper sx={{ height: 300, width: '100%', alignSelf: 'center' }}>
 
