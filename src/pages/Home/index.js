@@ -102,7 +102,7 @@ const Home = () => {
         <Container>
 
           <FormControl color='primary'  >
-            <Logo src='/medical.jpg' alt='id' />
+            <Logo src='/medical.jpeg' alt='id' />
             <Title>
               Sistema - Atendimento e Vendas ( Rodrigo )
             </Title>
@@ -148,7 +148,7 @@ const Home = () => {
 
         </Container>
         <Container1>
-          <ImageBackground id='logoa' src='/medical.jpg' />
+          <ImageBackground id='logoa' src='/medical.jpeg' />
         </Container1>
         <Snackbar
           anchorOrigin={{ vertical, horizontal }}
