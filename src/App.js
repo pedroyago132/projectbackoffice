@@ -5,7 +5,7 @@ import Measurement from './pages/Measurement';
 import Register from './pages/Register';
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { createTheme,ThemeProvider } from '@mui/material/styles';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { getDatabase } from 'firebase/database';
 import QRCode from './pages/QRCode';
 import Configuracao from './pages/Config';
@@ -17,6 +17,7 @@ import ChangePassword from './pages/ChangePassword';
 import CustomForm from './pages/ClientForm';
 import LoadingScreen from './pages/Loading';
 import GoogleAgenda from './pages/GoogleAgenda';
+import GenerateVideo from './pages/GenerateVideo';
 
 
 const firebaseConfig = {
@@ -41,40 +42,40 @@ export { database }
 
 const theme = createTheme({
   colorSchemes: {
-    
+
     light: {
       palette: {
         primary: {
           main: '#0073b1',
-          light:'#7F00FF',
-          dark:"#7F00FF"
+          light: '#7F00FF',
+          dark: "#7F00FF"
         },
 
-        secondary:{
+        secondary: {
           main: '#0073b1',
-          light:'#7F00FF',
-          dark:"#7F00FF"
+          light: '#7F00FF',
+          dark: "#7F00FF"
         },
-        
-      
+
+
         // ...other tokens
       },
-      
+
     },
     dark: {
       palette: {
         primary: {
-          main:'#0073b1',
-          light:'#7F00FF',
-          dark:"#7F00FF"
+          main: '#0073b1',
+          light: '#7F00FF',
+          dark: "#7F00FF"
         },
 
-        secondary:{
-          main:'#0073b1',
-          light:'#7F00FF',
-          dark:"#7F00FF"
+        secondary: {
+          main: '#0073b1',
+          light: '#7F00FF',
+          dark: "#7F00FF"
         },
-       
+
       },
     },
 
@@ -100,11 +101,12 @@ function App() {
           <Route path="/password" element={<ChangePassword />} />
           <Route path="/payment/customForm" element={<CustomForm />} />
           <Route path="/loading" element={<LoadingScreen />} />
-            <Route path="/google" element={<GoogleAgenda />} />
+          <Route path="/google" element={<GoogleAgenda />} />
+          <Route path="/gerar" element={<GenerateVideo />} />
         </Routes>
       </BrowserRouter>
-      </ThemeProvider>
-   
+    </ThemeProvider>
+
   );
 }
 

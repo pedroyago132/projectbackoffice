@@ -62,17 +62,17 @@ const GoogleAgenda = () => {
         if (idSalvo.tokens?.access_token) {
             try {
                 const body = {
-                    userId: base64.encode(user.email)
+                    userId: `${base64.encode(user.email)}`
                 }
-                const responseRefresh = await refreshToken(body)
+               const responseRefresh = await refreshToken(body)
 
-                if (responseRefresh) {
+               if (responseRefresh) {
                     const accessToken = responseRefresh.access_token
                     const revokeTokenEndpoint = 'https://oauth2.googleapis.com/revoke';
 
                     // Criando um formulário programaticamente
                     const formData = new FormData();
-                    formData.append('token', accessToken);
+                    formData.append('token', accessToken );
 
                     // Fazendo a requisição POST usando fetch
                     fetch(revokeTokenEndpoint, {
@@ -96,7 +96,7 @@ const GoogleAgenda = () => {
 
                         }).catch(err => console.log(err))
 
-                }
+              }
             } catch (err) {
                 console.log(err)
             }

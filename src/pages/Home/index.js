@@ -104,7 +104,7 @@ const Home = () => {
           <FormControl color='primary'  >
             <Logo src='/medical.png' alt='id' />
             <Title>
-              Automação para Agendmentos
+              Sistema - Atendimento e Vendas ( Rodrigo )
             </Title>
             <CleanTextField
               fullWidth

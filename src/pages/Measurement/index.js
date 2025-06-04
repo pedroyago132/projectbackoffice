@@ -116,6 +116,7 @@ const styleModalList = {
 const actions = [
     { icon: <AccountBoxOutlined style={{ color: '#42adda', backgroundColor: '#0073b1' }} />, name: 'Cadastrar Funcionário' },
     { icon: <AccountBoxOutlined style={{ color: '#42adda', backgroundColor: '#0073b1' }} />, name: 'Cadastrar Serviços' },
+    { icon: <AccountBoxOutlined style={{ color: '#42adda', backgroundColor: '#0073b1' }} />, name: 'Cadastrar Produtos' },
 
 ];
 
@@ -131,6 +132,7 @@ const Measurement = () => {
     const navigate = useNavigate()
     const [open, setOpen] = React.useState(false);
     const [openRegister, setOpenRegister] = React.useState(false);
+    const [openProduct, setOpenProduct] = React.useState(false);
     const [openList, setOpenList] = React.useState(false);
     const [datarow, setDataRow] = React.useState(false);
     const [dataClientes, setDataClientes] = React.useState([]);
@@ -144,7 +146,7 @@ const Measurement = () => {
     const [novaData, setNovaData] = React.useState(null);
     const [clientForTime, setClientforTime] = React.useState([{ clientes: [] }]);
     const [connectednumber, setConnectedNumber] = React.useState(false);
-    const [userData, setUserData] = React.useState({ funcionarios: [] });
+    const [userData, setUserData] = React.useState({ servicos: [] });
     const listRef = React.useRef(null);
     const [paymentState, setPaymentState] = React.useState({ assinatura: false });
     const [dataRowRecompra, setDataRowRecompra] = React.useState('');
@@ -172,6 +174,9 @@ const Measurement = () => {
     const [etapaConfirm, setEtapaConfirm] = React.useState(false);
     const [nomeServico, setNomeServico] = React.useState('');
     const [valorServico, setValorServico] = React.useState('');
+    const [nomeProduto, setNomeProduto] = React.useState('');
+    const [valorProduto, setValorProduto] = React.useState('');
+    const [descricaoProduto, setDescricaoProduto] = React.useState('');
     const [etapaDate, setEtapaDate] = React.useState('');
     const [horarioManual, setManualHorarios] = React.useState([]);
     const [dateManual, setDateManual] = React.useState('');
@@ -214,7 +219,7 @@ const Measurement = () => {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  width:90%
+  width:100%
   padding: 20px;
   align-items:center;
   justify-content:center;
@@ -463,6 +468,9 @@ transition: transform 0.3s;
     const handleOpenRegister = () => setOpenRegister(true);
     const handleCloseRegister = () => setOpenRegister(false);
 
+    const handleOpenProduct = () => setOpenProduct(true);
+    const handleCloseProduct = () => setOpenProduct(false);
+
     const handleOpenList = () => setOpenList(true);
     const handleCloseList = () => setOpenList(false);
     const columns = [
@@ -477,6 +485,11 @@ transition: transform 0.3s;
 
     ];
 
+    const columnsComprados = [
+        { field: 'clientPhone', headerName: 'Telefone Cliente:', width: 150 },
+        { field: 'selectedProduct', headerName: 'Nome', width: 130 },
+    ];
+
 
     const services = [
         { nome: "Corte de Cabelo", preco: "R$30" },
@@ -486,11 +499,11 @@ transition: transform 0.3s;
 
 
     const data = [
-        { title: "Agendamentos", value: relatorio ? relatorio.clientes : 0, percentage: "+0%" },
-        { title: "Agendamentos atendidos", value: relatorio.clientesAtendidos ? relatorio.clientesAtendidos : 0, percentage: "+0%" },
-        { title: "Valor Agendado", value: `R$ ${relatorio.valorEmClientes ? relatorio.valorEmClientes.toFixed(2).replace('.', ',') : 0}`, percentage: "+0%" },
+        { title: "Serviços Agendados", value: relatorio ? relatorio.clientes : 0, percentage: "+0%" },
+        { title: "Produtos Vendidos", value: relatorio.clientesAtendidos ? relatorio.clientesAtendidos : 0, percentage: "+0%" },
+        { title: "Receita Líquida", value: `R$ ${relatorio.valorEmClientes ? relatorio.valorEmClientes.toFixed(2).replace('.', ',') : 0}`, percentage: "+0%" },
 
-        { title: "Receita Líquida", value: `R$ ${relatorio.valorEmClientesAtendidos ? relatorio.valorEmClientesAtendidos.toFixed(2).replace('.', ',') : 0}`, percentage: "+0%" },
+    //    { title: "Receita Líquida", value: `R$ ${relatorio.valorEmClientesAtendidos ? relatorio.valorEmClientesAtendidos.toFixed(2).replace('.', ',') : 0}`, percentage: "+0%" },
     ];
 
     const paginationModel = { page: 0, pageSize: 5 };
@@ -674,7 +687,7 @@ transition: transform 0.3s;
             if (user) {
                 setUser(user)
 
-                const appointmentsRef = ref(db, `${base64.encode(user.email)}/agendamentos`);
+                const appointmentsRef = ref(db, `${base64.encode(user.email)}`);
                 setItem('user', user)
 
                 onValue(appointmentsRef, (snapshot) => {
@@ -687,7 +700,7 @@ transition: transform 0.3s;
                         const month = String(today.getMonth() + 1).padStart(2, '0');
                         const todayFormatted = `${day}/${month}`;
 
-                        const allAppointments = Object.entries(data).map(([key, appt]) => ({
+                        const allAppointments = Object.entries(data.agendamentos).map(([key, appt]) => ({
                             id: key,
                             service: appt.service,          // Removido appt.servico||
                             clientName: appt.clientName,    // Removido appt.nome||
@@ -703,10 +716,18 @@ transition: transform 0.3s;
                         setBookedAppointments(allAppointments);
                         console.log('ALL APPOINTMENTS:', allAppointments);
 
-                        const attendedToday = allAppointments.filter(appt =>
-                            appt.atendido === true && appt.date === todayFormatted
-                        );
-                        setAttendedAppointments(attendedToday);
+                        /*   const attendedToday = allAppointments.filter(appt =>
+                               appt.atendido === true && appt.date === todayFormatted
+                           );*/
+                        if (data.compras) {
+                            const allBuys = Object.entries(data.compras).map(([key, appt]) => ({
+                                id: key,
+                                clientPhone: appt.clientPhone,
+                                selectedProduct: appt.selectedProduct
+                            }));
+                            setAttendedAppointments(allBuys);
+                        }
+
                     } else {
                         setBookedAppointments([]);
                         setAttendedAppointments([]);
@@ -717,7 +738,7 @@ transition: transform 0.3s;
 
                 onValue(appointments, (snapshot) => {
                     setUserData(snapshot.val())
-                    //  setLink(snapshot.val()?.nameBase64 ? `https://wa.me/5561990008359?text=${snapshot.val().nameBase64}` : null)
+                      setLink(snapshot.val()?.nameBase64 ? `https://wa.me/5561990008359?text=${snapshot.val().nameBase64}` : null)
                 });
 
                 dataInstanceValue()
@@ -795,6 +816,8 @@ transition: transform 0.3s;
             handleOpen()
         } else if (event == 'Cadastrar Serviços') {
             handleOpenRegister()
+        } else if (event == 'Cadastrar Produtos') {
+            handleOpenProduct()
         }
 
 
@@ -833,25 +856,52 @@ transition: transform 0.3s;
     };
 
     async function registerFuncionario() {
-        const db = getDatabase();
-        set(ref(db, `${base64.encode(user.email)}/funcionarios/${base64.encode(nomeFuncionario + cargoFuncionario)}`), {
-            nome: nomeFuncionario,
-            cargo: cargoFuncionario
-        }).then(() => handleClose()).catch(() => console.log());
+        if (!nomeFuncionario || !cargoFuncionario) {
+            window.alert('Complete os campos')
+        } else {
+            const db = getDatabase();
+            set(ref(db, `${base64.encode(user.email)}/funcionarios/${base64.encode(nomeFuncionario + cargoFuncionario)}`), {
+                nome: nomeFuncionario,
+                cargo: cargoFuncionario
+            }).then(() => handleClose()).catch(() => console.log());
 
+
+        }
 
     }
 
     async function registerServico() {
-        const db = getDatabase();
-        set(ref(db, `${base64.encode(user.email)}/servicos/${base64.encode(valorServico + nomeServico)}`), {
-            nome: nomeServico,
-            valor: valorServico,
-            descricao: descricaoServico
-        }).then(() => handleCloseRegister()).catch(error => console.log('ERRO AO CADASTRAR SERVIÇO:::::::', error));
+        if (!valorServico || !nomeServico) {
+            window.alert('Complete os campos')
+        } else {
+            const db = getDatabase();
+            set(ref(db, `${base64.encode(user.email)}/servicos/${base64.encode(valorServico + nomeServico)}`), {
+                nome: nomeServico,
+                valor: valorServico,
+                descricao: descricaoServico
+            }).then(() => handleCloseRegister()).catch(error => console.log('ERRO AO CADASTRAR SERVIÇO:::::::', error));
 
+
+        }
 
     }
+
+    async function registerProduct() {
+        if (!nomeProduto || !valorProduto) {
+            window.alert('Complete os campos')
+        } else {
+            const db = getDatabase();
+            set(ref(db, `${base64.encode(user.email)}/produtos/${base64.encode(valorProduto + nomeProduto)}`), {
+                nome: nomeProduto,
+                valor: valorProduto,
+                descricao: descricaoProduto
+            }).then(() => handleCloseProduct()).catch(error => console.log('ERRO AO CADASTRAR SERVIÇO:::::::', error));
+
+
+        }
+
+    }
+
 
     const fetchBookedAppointments = async () => {
         const dbRef = ref(database, `${base64.encode(user.email)}/agendamentos`); // Referência para a coleção 'clientes'
@@ -928,10 +978,7 @@ transition: transform 0.3s;
 
 
                 <Container2>
-                    <div style={{ display: 'flex', gap: 20 }} >
-                        <RenderConnected />
-
-                    </div>
+             
 
                     <CopyContainer>
                         <LinkInput
@@ -963,7 +1010,10 @@ transition: transform 0.3s;
 
                             ))}
 
-                            <CardT>
+                         
+
+                        </ContainerT>
+                           <CardT>
                                 <Icon>
                                     <img style={{ width: 30, height: 30 }} alt='icon' src='time-left.png' />
                                 </Icon>
@@ -974,30 +1024,29 @@ transition: transform 0.3s;
                                 </Info>
                             </CardT>
 
-
-                        </ContainerT>
                         <div style={styleFuncServ} >
                             <div style={{ display: "flex", flexDirection: 'column' }} >
                                 <h3 style={{ color: 'Black', alignSelf: 'flex-start', fontSize: 22 }} >Serviços:</h3>
                                 <div style={{ display: 'flex', width: '45%', gap: 10, minWidth: 220, flexWrap: 'wrap' }} >
 
                                     {
-                                        userData?.servicos ? (
-                                            Object.keys(userData.servicos).map((key, index) => {
-                                                const servico = userData.servicos[key];
-                                                return (
+                                        userData.servicos ? (
+                                            Object.keys(userData.servicos).length > 0 ? (
+                                                Object.entries(userData.servicos).map(([key, servico]) => (
                                                     <ServiceCardContainer key={key}>
                                                         <DeleteButton onClick={() => onDeleteService(servico)}>
                                                             ×
                                                         </DeleteButton>
-                                                        <ServiceTitle>{index + 1} - {servico.nome}</ServiceTitle>
+                                                        <ServiceTitle>{servico.nome}</ServiceTitle>
                                                         <ServiceDescription>Serviço</ServiceDescription>
-                                                        <ServicePrice>{servico.valor}</ServicePrice>
+                                                        <ServicePrice>R$ {servico.valor}</ServicePrice>
                                                     </ServiceCardContainer>
-                                                );
-                                            })
+                                                ))
+                                            ) : (
+                                                <p style={{ fontWeight: "bold", color: 'white' }}>Nenhum serviço cadastrado</p>
+                                            )
                                         ) : (
-                                            <p style={{ fontWeight: "bold", color: 'white' }} >Nenhum serviço cadastrado</p>
+                                            <p style={{ fontWeight: "bold", color: 'white' }}>Carregando serviços...</p>
                                         )
                                     }
                                 </div>
@@ -1008,22 +1057,50 @@ transition: transform 0.3s;
                                 <div style={{ display: 'flex', minWidth: '100%', gap: 10, flexWrap: 'wrap' }} >
 
                                     {
-                                        userData?.funcionarios ? (
-                                            Object.keys(userData.funcionarios).map((key, index) => {
-                                                const servico = userData.funcionarios[key];
-                                                return (
+                                        userData.funcionarios ? (
+                                            Object.keys(userData.funcionarios).length > 0 ? (
+                                                Object.entries(userData.funcionarios).map(([key, funcionario]) => (
                                                     <ServiceCardContainer key={key}>
-                                                        <DeleteButton onClick={() => onDeleteEmployee(servico)}>
+                                                        <DeleteButton onClick={() => onDeleteEmployee(funcionario)}>
                                                             ×
                                                         </DeleteButton>
-                                                        <ServiceTitle>{index + 1} - {servico.nome}</ServiceTitle>
+                                                        <ServiceTitle>{funcionario.nome}</ServiceTitle>
                                                         <ServiceDescription>Função:</ServiceDescription>
-                                                        <ServicePrice>{servico.cargo}</ServicePrice>
+                                                        <ServicePrice>{funcionario.cargo}</ServicePrice>
                                                     </ServiceCardContainer>
-                                                );
-                                            })
+                                                ))
+                                            ) : (
+                                                <p style={{ fontWeight: "bold", color: 'white' }}>Nenhum Funcionário cadastrado</p>
+                                            )
                                         ) : (
-                                            <p style={{ fontWeight: "bold", color: 'white' }} >Nenhum Funcionário cadastrado</p>
+                                            <p style={{ fontWeight: "bold", color: 'white' }}>Carregando funcionários...</p>
+                                        )
+                                    }
+                                </div>
+                            </div>
+
+                            <div style={{ display: "flex", flexDirection: 'column', width: '40%' }} >
+                                <h3 style={{ color: 'Black', alignSelf: 'flex-start', fontSize: 22 }} >Produtos:</h3>
+                                <div style={{ display: 'flex', minWidth: '100%', gap: 10, flexWrap: 'wrap' }} >
+
+                                    {
+                                        userData.produtos ? (
+                                            Object.keys(userData.produtos).length > 0 ? (
+                                                Object.entries(userData.produtos).map(([key, funcionario]) => (
+                                                    <ServiceCardContainer key={key}>
+                                                        <DeleteButton onClick={() => onDeleteEmployee(funcionario)}>
+                                                            ×
+                                                        </DeleteButton>
+                                                        <ServiceTitle>{funcionario.nome}</ServiceTitle>
+                                                        <ServiceDescription>Valor:</ServiceDescription>
+                                                        <ServicePrice>{funcionario.valor}</ServicePrice>
+                                                    </ServiceCardContainer>
+                                                ))
+                                            ) : (
+                                                <p style={{ fontWeight: "bold", color: 'white' }}>Nenhum Funcionário cadastrado</p>
+                                            )
+                                        ) : (
+                                            <p style={{ fontWeight: "bold", color: 'white' }}>Carregando funcionários...</p>
                                         )
                                     }
                                 </div>
@@ -1072,7 +1149,7 @@ transition: transform 0.3s;
                             <DataGrid
 
                                 rows={attendedAppointments}
-                                columns={columns}
+                                columns={columnsComprados}
                                 initialState={{ pagination: { paginationModel } }}
                                 pageSizeOptions={[10]}
                                 checkboxSelection
@@ -1148,6 +1225,41 @@ transition: transform 0.3s;
                 </Box>
             </Modal>
 
+
+            <Modal
+                open={openProduct}
+                onClose={handleCloseProduct}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Box sx={style}>
+                    <div style={{ display: 'flex', flexDirection: 'row', gap: 7 }} >
+                        <Typography id="modal-modal-title" variant="h3" style={{ fontWeight: 'bold', fontSize: 20 }} >
+                            Cadastrar Produto:
+                        </Typography>
+
+                    </div>
+                    <Typography id="modal-modal-title" variant="h5" style={{ fontWeight: '500', marginTop: 10, fontSize: 16 }} >
+                        Nome Do Produto:
+                    </Typography>
+                    <TextField id="outlined-basic-cpf" style={{ marginTop: 15 }} value={nomeProduto} label="Insira um nome...." onChange={text => setNomeProduto(text.target.value)} placeholder='Mensagem' fullWidth variant="outlined" />
+
+                    <Typography id="modal-modal-title" variant="h5" style={{ fontWeight: '500', marginTop: 10, fontSize: 16 }} >
+                        Valor Do Produto:
+                    </Typography>
+                    <TextField id="outlined-basic-cpf" style={{ marginTop: 15 }} value={valorProduto} label="Ex: 15.50..." onChange={text => setValorProduto(text.target.value)} placeholder='Mensagem' fullWidth variant="outlined" />
+
+                    <Typography id="modal-modal-title" variant="h5" style={{ fontWeight: '500', marginTop: 10, fontSize: 16 }} >
+                        Descrição do Produto:
+                    </Typography>
+                    <TextField id="outlined-basic-cpf" style={{ marginTop: 15 }} value={descricaoProduto} label="Produto em perfeito estado ✨ + embalagem médio com textura (produto: pomada ou wax) 💈🔥" onChange={text => setDescricaoProduto(text.target.value)} placeholder='Descrição' fullWidth variant="outlined" />
+
+
+                    <Button style={{ marginTop: 10, backgroundColor: '#0073b1' }} variant='contained' fullWidth onClick={() => registerProduct()}>Cadastrar</Button>
+
+
+                </Box>
+            </Modal>
 
             <Modal
                 open={openRegister}
