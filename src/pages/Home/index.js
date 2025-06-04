@@ -102,7 +102,7 @@ const Home = () => {
         <Container>
 
           <FormControl color='primary'  >
-            <Logo src='/logo.png' alt='id' />
+            <Logo src='/logo.jpeg' alt='id' />
             <Title>
               Sistema - Atendimento e Vendas ( Rodrigo )
             </Title>
