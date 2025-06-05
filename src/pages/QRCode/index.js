@@ -44,14 +44,10 @@ const QRCodePage = () => {
 
     const localTokens = [
         {
-            instance: "3E1C913EE76B50205B962ED5B439CBB7",
-            token: "0F76F73AD4B03EBDBCCDC20F"
+            instance: "3E23C06FA72A60DFF509C6E882E8CF29",
+            token: "D4958B0283F56F0965B846A5"
         },
-        {
-            instance: "3E1Cjhgjhgfj5B9gdfgfd62ED5B439CBB7",
-            token: "hjfghfghgf3EBDBCgfdCDC20F"
-        },
-
+     
     ];
 
     React.useEffect(() => {
@@ -158,10 +154,10 @@ const QRCodePage = () => {
                     await set(ref(db, `${base64.encode(user.email)}/tokenZAPI`), {
                         token: tokenListNotUsed.token,
                         instance: tokenListNotUsed.instance,
-                        userEmail: user.email
+                        userEmail: user.email 
                     })
-                    await QRcode({ token: tokenListNotUsed.token, instance: tokenListNotUsed.instance })
-                    console.log('DSHUIDHUISA::::::::', { token: tokenListNotUsed[0].token, instance: tokenListNotUsed[0].instance })
+                    await QRcode({ token:tokenListNotUsed.token, instance:tokenListNotUsed.instance })
+                    console.log('DSHUIDHUISA::::::::', { token: tokenListNotUsed.token, instance: tokenListNotUsed.instance })
                 } catch (error) {
                     console.error('TRYCAYCHERROR:::::QRCODE:::', error); // Lida com erros
                 }
@@ -170,16 +166,20 @@ const QRCodePage = () => {
         }
     }
 
-    async function QRcode({ token, instance }) {
+    async function QRcode({token, instance}) {
         try {
             if (connected) {
                 window.alert('Celular Conectado')
             } else {
+
                 const idi = instance;
                 const tokeni = token;
                 const response = await lerQRCode(idi, tokeni)
-                setQRCode(response); // Atualiza o estado ou faz o que for necessário com o QR Code
+                if(response){
+              setQRCode(response); // Atualiza o estado ou faz o que for necessário com o QR Code
                 console.log('RSPONEVALUE::::::', response); // Imprime o resultado
+                }
+  
 
             }
 
@@ -212,9 +212,9 @@ const QRCodePage = () => {
     }
 
     async function disconnectedInstance() {
-        if (!checkUserToken.token) {
-            const idi = checkUserToken?.instance;
-            const tokeni = checkUserToken?.token;
+        if (checkUserToken.token) {
+            const idi = checkUserToken.instance;
+            const tokeni = checkUserToken.token;
 
             try {
                 const response = await dataDisconnectedInstance(idi, tokeni); // Aguarda a função retornar o resultado
@@ -235,10 +235,13 @@ const QRCodePage = () => {
 
 
     React.useEffect(() => {
-        dataInstanceValue();
+      
+        setInterval(() => {
+              dataInstanceValue();
+        }, 3000);
     }, [checkUserToken])
 
-    console.log(checkUserToken.token)
+    console.log(checkUserToken.token,checkUserToken.instance)
 
     return (
         <>

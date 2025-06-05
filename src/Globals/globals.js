@@ -10,4 +10,4 @@ export const backgroundColor = '#201c17'
 
 export const Globalurl = ' https://api.z-api.io/';
 
-export const secretToken = 'F5bb9f7305274405a91511d3f1840f1c0S';
+export const secretToken = 'F6f5e779a04f5435cbe443d6fdea0699cS';

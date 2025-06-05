@@ -125,12 +125,15 @@ export function createInstance(body) {
 }
 
 export async function lerQRCode(idi, tokeni) {
+  console.log('SERVICES ISNTANCE',idi)
+    console.log('SERVICES TOKEN',tokeni)
+
   try {
     const response = await fetch(`https://api.z-api.io/instances/${idi}/token/${tokeni}/qr-code`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'client-Token': `${secretToken}`,
+        'client-Token': `F6f5e779a04f5435cbe443d6fdea0699cS`,
       },
     });
 
