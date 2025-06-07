@@ -145,7 +145,7 @@ const QRCodePage = () => {
     }
 
     async function GerarQRCode() {
-        if (!checkUserToken.token) {
+   
             const checkTokenNotExists = await verifyLocalTokens();
             if (checkTokenNotExists) {
                 const tokenListNotUsed = checkTokenNotExists.find(tokenObject => tokenObject.existsInDB == false)
@@ -163,7 +163,7 @@ const QRCodePage = () => {
                 }
             }
 
-        }
+      
     }
 
     async function QRcode({token, instance}) {

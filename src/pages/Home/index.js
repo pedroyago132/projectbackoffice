@@ -102,9 +102,9 @@ const Home = () => {
         <Container>
 
           <FormControl color='primary'  >
-            <Logo src='/logo.jpeg' alt='id' />
+            <Logo src='/medical.png' alt='id' />
             <Title>
-              Sistema - Atendimento e Vendas ( Rodrigo )
+             Sistema de Atendimento de Soraya e Junior
             </Title>
             <CleanTextField
               fullWidth
